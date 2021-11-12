@@ -12,7 +12,9 @@ import '/menu/view.dart';
 class EditorPage extends StatelessWidget {
   final logic = Get.put(EditorLogic());
   final state = Get.find<EditorLogic>().state;
-
+  int innerMin(int A,int B){
+    return A<B?A:B;
+  }
   @override
   Widget build(BuildContext context) {
     logic.initState();
@@ -26,7 +28,16 @@ class EditorPage extends StatelessWidget {
             onPressed: () {
               print(state.versionPointer);
               print(state.versions[state.versionPointer].title);
-              Get.back(result: state.versions[state.versionPointer].copy());
+              Article retArticle = state.versions[state.versionPointer].copy();
+              if("" == retArticle.contain || null == retArticle.contain) {
+                print("Error: Null Contain!!!");
+              }
+              if("" == retArticle.title || null == retArticle.title) {
+                print("Warning: Auto Fill Title");
+                retArticle.title = retArticle.contain.substring(0, innerMin(retArticle.contain.length, 50));
+                print(retArticle.title);
+              }
+              Get.back(result: retArticle);
             },
           );
         }),
@@ -118,7 +129,7 @@ class _NoteEditorState extends State<NoteEditor> {
                 hintText: "请输入笔记的标题",
               ),
               onChanged: (v) {
-                article = article.copy();
+                article = state.versions[state.versionPointer].copy();
                 article.title = v;
                 logic.modifyArticle(article);
               },
@@ -136,7 +147,7 @@ class _NoteEditorState extends State<NoteEditor> {
                 hintText: "请输入笔记内容",
               ),
               onChanged: (v) {
-                article = article.copy();
+                article = state.versions[state.versionPointer].copy();
                 article.contain = v;
                 logic.modifyArticle(article);
               },
@@ -169,7 +180,7 @@ class NoteEditorTagList extends StatelessWidget {
                   child: NoteTag(tags[index], 1.2),
                   onTap: () {
                     print("Tag Deleted");
-                    article = article.copy();
+                    article = state.versions[state.versionPointer].copy();
                     article.tags.removeAt(index);
                     print(article.tags.length);
                     logic.modifyArticle(article);
@@ -199,7 +210,7 @@ class NoteEditorTagList extends StatelessWidget {
                         child: Text("确定"),
                         onPressed: () {
                           if (_tagController.text != '') {
-                            article = article.copy();
+                            article = state.versions[state.versionPointer].copy();
                             article.tags.add(_tagController.text);
                             _tagController.text = '';
                             logic.modifyArticle(article);

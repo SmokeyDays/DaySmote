@@ -8,10 +8,46 @@ class MenuPage extends StatelessWidget {
   final logic = Get.put(MenuLogic());
   final state = Get.find<MenuLogic>().state;
 
+  List<Widget> tagListGenerator(String filter) {
+    List ret = List.generate(0, (index) => Article("",[],""));
+    state.list.forEach((element) {
+      bool bo = false;
+      element.tags.forEach((tag) {
+        if(tag == filter) {
+          bo = true;
+        }
+      });
+      if(bo) {
+        ret.add(element);
+      }
+    });
+    if(ret.isEmpty) {
+      return List.generate(1, (index) => Text("No Note Found"));
+    }
+    return List.generate(ret.length, (index) {
+      return NoteCard(ret[index], index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
+      drawer: GetBuilder<MenuLogic>(
+        builder: (_) {
+          state.tagMap.clear();
+          for(var element in state.list) {
+            for(var tag in element.tags) {
+              if(state.tagMap[tag] == null){
+                state.tagMap[tag] = 1;
+              } else {
+                ++state.tagMap[tag];
+              }
+            }
+          }
+          return TagFilterList();
+        }
+      ),
       appBar: AppBar(
         title: Text('DaySmote'), centerTitle: true,
         leading: Builder(builder: (context) {
@@ -23,6 +59,14 @@ class MenuPage extends StatelessWidget {
             },
           );
         }),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.home), //自定义图标
+            onPressed: () {
+              logic.setFilter("");
+            },
+          ),
+        ],
       ),
       body: Container(
         alignment: Alignment.center,
@@ -30,13 +74,11 @@ class MenuPage extends StatelessWidget {
         child: GetBuilder<MenuLogic>(
           builder: (_) => ListView(
             // crossAxisAlignment: CrossAxisAlignment.center,
-            children: (null == state.tagFilter || "" == state.tagFilter)
+          children: (null == state.tagFilter || "" == state.tagFilter)
             ? List.generate(state.list.length, (index) {
               return NoteCard(state.list[index], index);
             })
-            : List.generate(state.list.length, (index) {
-              return NoteCard(state.list[index], index); // Todo: Filter by tag.
-            }),
+            : tagListGenerator(state.tagFilter),
           ),
         )
       ),
@@ -172,6 +214,62 @@ class NoteTag extends StatelessWidget {
           textScaleFactor: size,
         ),
       ),
+    );
+  }
+}
+
+class TagFilterList extends StatelessWidget {
+  final state = Get.find<MenuLogic>().state;
+  TagFilterList({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    List tagList = List.generate(0, (index) => null);
+    state.tagMap.forEach((key, value) {
+      tagList.add({"name": key, "count": value});
+    });
+    return Drawer(
+      child: ListView(
+        children: List.generate(tagList.length, (index) {
+          print(tagList[index]);
+          return TagFilter(tagList[index]['name'], tagList[index]['count']);
+        }),
+      ),
+    );
+  }
+}
+
+class TagFilter extends StatelessWidget {
+  final logic = Get.find<MenuLogic>();
+  TagFilter(this.name, this.count, {Key? key}) : super(key: key);
+  final String name;
+  final int count;
+  Widget build(BuildContext context) {
+    return Card(
+      child: GestureDetector(
+        child: ListTile(
+          title: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: <Widget>[
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textScaleFactor: 1.8,
+              ),
+              Expanded(child: Container()),
+              Text(
+                count.toString(),
+                textScaleFactor: 1.5,
+              )
+            ],
+          ),
+        ),
+        onTap: () {
+          logic.setFilter(name);
+          Navigator.of(context).pop();
+        },
+      )
     );
   }
 }

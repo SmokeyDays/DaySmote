@@ -4,6 +4,13 @@ import 'state.dart';
 
 class MenuLogic extends GetxController {
   final MenuState state = MenuState();
+  void setFilter(String name) {
+    state.tagFilter = name;
+    update();
+  }
+  void updateTagMap() {
+    update();
+  }
   void insertArticle(Article article) {
     state.list.add(article.copy());
     update();
