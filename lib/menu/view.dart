@@ -88,7 +88,7 @@ class MenuPage extends StatelessWidget {
           Article newArticle = await Get.to(EditorPage(), arguments: Article("",[],""));
           print(newArticle.title);
           print(newArticle.contain);
-          if("" != newArticle.title && "" != newArticle.contain) {
+          if("" != newArticle.title) {
             logic.insertArticle(newArticle);
           } else {
             print("Returned Null Article");
@@ -148,7 +148,7 @@ class NoteCard extends StatelessWidget {
       ),
       onTap: () async {
         Article newArticle = await Get.to(EditorPage(), arguments: article);
-        if("" != newArticle.title && "" != newArticle.contain) {
+        if("" != newArticle.title) {
           logic.modifyArticle(newArticle, index);
         } else {
           print("Article " + index.toString() + "deleted");
@@ -170,7 +170,8 @@ class NoteCardTagList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        child: Row(
+        child: Wrap(
+          direction: Axis.horizontal,
           children: List.generate(tags.length, (index) {
             return NoteTag(tags[index], 0.9);
           }),

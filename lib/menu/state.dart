@@ -17,10 +17,10 @@ class MenuState {
   Map tagMap = new Map();
   String tagFilter = "";
   MenuState() {
-    list.add(Article("TestTitle",["text","article","note","note"],"Hello World!"*20));
+    list.add(Article("TestTitle",["text","article","note"],"Hello World!"*20));
     list.add(Article("TestTitle",["text","article","test"],"Hello World!"));
     list.add(Article("TestTitle",["text","article","note"],"Hello World!"));
-    list.add(Article("TestTitle",["text","article","note"],"Hello World!"));
+    list.add(Article("TestTitle",["text","article","note","aaaaa","bbbbb","ccccc","ddddd"],"Hello World!"));
     list.add(Article("TestTitle",["text","article","note"],"Hello World!"));
     list.add(Article("TestTitle",["text","article","note"],"Hello World!"));
     list.add(Article("TestTitle",["text","article","note"],"Hello World!"));

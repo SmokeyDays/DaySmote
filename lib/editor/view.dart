@@ -29,6 +29,7 @@ class EditorPage extends StatelessWidget {
               print(state.versionPointer);
               print(state.versions[state.versionPointer].title);
               Article retArticle = state.versions[state.versionPointer].copy();
+              retArticle.contain.trim();retArticle.title.trim();
               if("" == retArticle.contain || null == retArticle.contain) {
                 print("Error: Null Contain!!!");
               }
@@ -172,11 +173,13 @@ class NoteEditorTagList extends StatelessWidget {
   Widget build(BuildContext context) {
     Article article = state.versions[state.versionPointer];
     return Container(
-        child: Row(
+        child: Wrap(
+          direction: Axis.horizontal,
+          runAlignment: WrapAlignment.center,
           children: <Widget>[
-            Row(
-              children: List.generate(tags.length, (index) {
-                return GestureDetector(
+            Wrap(
+              children: List.generate(tags.length + 1, (index) {
+                return index < tags.length ? GestureDetector(
                   child: NoteTag(tags[index], 1.2),
                   onTap: () {
                     print("Tag Deleted");
@@ -186,55 +189,72 @@ class NoteEditorTagList extends StatelessWidget {
                     logic.modifyArticle(article);
                     logic.update();
                   },
+                ) : GestureDetector(
+                  child: NoteTag(" + ", 1.2),
+                  onTap: () {
+                    showDialog<bool>(context: context, builder: (context) {
+                      return AlertDialog(
+                        title: Text("添加标签"),
+                        content: Container(
+                          child: TextField(
+                            controller: _tagController,
+                            maxLength: 10,
+                            decoration: const InputDecoration(
+                              labelText: '新建标签',
+                              hintText: '输入标签名',
+                            ),
+                          ),
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            child: Text("确定"),
+                            onPressed: () {
+                              _tagController.text.trim();
+                              if (_tagController.text != '') {
+                                article = state.versions[state.versionPointer].copy();
+                                bool bo = true;
+                                for(var nowTag in article.tags) {
+                                  if(nowTag == _tagController.text) {
+                                    bo = false;
+                                    break;
+                                  }
+                                }
+                                if(true == bo) {
+                                  article.tags.add(_tagController.text);
+                                  _tagController.text = '';
+                                  logic.modifyArticle(article);
+                                  logic.update();
+                                  print("Create " + _tagController.text + "successfully");
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: const Text('创建失败：标签名重复。')),
+                                  );
+                                  print("Warning: Tag " + _tagController.text + "Already Existed.");
+                                }
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: const Text('创建失败：标签名为空。')),
+                                );
+                                print("Create failed: Null Tag");
+                              }
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          TextButton(
+                            child: Text(
+                              "取消",
+                            ),
+                            onPressed: () {
+                              print("Create Tag Cancelled");
+                              Navigator.of(context).pop();
+                            },
+                          )
+                        ],
+                      );
+                    });
+                  },
                 );
               }),
-            ),
-            GestureDetector(
-              child: NoteTag(" + ", 1.2),
-              onTap: () {
-                showDialog<bool>(context: context, builder: (context) {
-                  return AlertDialog(
-                    title: Text("添加标签"),
-                    content: Container(
-                      child: TextField(
-                        controller: _tagController,
-                        maxLength: 10,
-                        decoration: const InputDecoration(
-                          labelText: '新建标签',
-                          hintText: '输入标签名',
-                        ),
-                      ),
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text("确定"),
-                        onPressed: () {
-                          if (_tagController.text != '') {
-                            article = state.versions[state.versionPointer].copy();
-                            article.tags.add(_tagController.text);
-                            _tagController.text = '';
-                            logic.modifyArticle(article);
-                            logic.update();
-                            print("Create " + _tagController.text + "successfully");
-                          } else {
-                            print("Create failed: Null Tag");
-                          }
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      TextButton(
-                        child: Text(
-                          "取消",
-                        ),
-                        onPressed: () {
-                          print("Create Tag Cancelled");
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    ],
-                  );
-                });
-              },
             ),
           ]
         )
