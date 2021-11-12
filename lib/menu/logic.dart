@@ -8,6 +8,10 @@ class MenuLogic extends GetxController {
     state.list.add(article.copy());
     update();
   }
+  void deleteArticle(int index) {
+    state.list.removeAt(index);
+    update();
+  }
   void modifyArticle(Article article, int index) {
     if(index < 0 || index >= state.list.length){
       print("Error: Index out of range.");

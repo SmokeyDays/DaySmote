@@ -7,7 +7,9 @@ import '/menu/state.dart';
 class EditorLogic extends GetxController {
   final EditorState state = EditorState();
   void initState() {
-    init();
+    state.versions.clear();
+    state.versionPointer = 0;
+    print("initState");
   }
 
   void modifyArticle(Article article) {
@@ -36,7 +38,6 @@ class EditorLogic extends GetxController {
     state.versions.clear();
     state.versionPointer = 0;
     print(state.versions.length);
-    update();
     return Article("",[],"");
   }
 

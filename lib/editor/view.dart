@@ -6,24 +6,25 @@ import 'package:get/get.dart';
 
 import '/menu/state.dart';
 import 'logic.dart';
+import '/menu/view.dart';
 
 class EditorPage extends StatelessWidget {
   final logic = Get.put(EditorLogic());
   final state = Get.find<EditorLogic>().state;
 
-
   @override
   Widget build(BuildContext context) {
     logic.initState();
-    state.versions.add(Article(Get.arguments.title, Get.arguments.tags, Get.arguments.contain));
+    state.versions.add(Get.arguments.copy());
     return Scaffold(
       appBar: AppBar(
         title: Text('Editor'), centerTitle: true,
         leading: Builder(builder: (context) {
           return IconButton(
-            icon: Icon(Icons.keyboard_return), //自定义图标
+            icon: Icon(Icons.done), //自定义图标
             onPressed: () {
-              // 打开抽屉菜单
+              print(state.versionPointer);
+              print(state.versions[state.versionPointer].title);
               Get.back(result: state.versions[state.versionPointer].copy());
             },
           );
@@ -42,9 +43,9 @@ class EditorPage extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: Icon(Icons.done), //自定义图标
+            icon: Icon(Icons.clear), //自定义图标
             onPressed: () {
-              Get.back(result: state.versions[state.versionPointer]);
+              Get.back(result: state.versions[0].copy());
             },
           ),
           IconButton(
@@ -58,30 +59,57 @@ class EditorPage extends StatelessWidget {
       body: GetBuilder<EditorLogic>(
         builder: (_) {
           print(state.versionPointer);
-          return NoteEditor(state.versions[state.versionPointer]);
+          return NoteEditor();
         },
       ),
     );
   }
 }
 
-class NoteEditor extends StatelessWidget {
+class NoteEditor extends StatefulWidget {
+  const NoteEditor(
+      {
+    Key? key
+  }) : super(key: key);
+
+  @override
+  _NoteEditorState createState() => _NoteEditorState();
+}
+
+class _NoteEditorState extends State<NoteEditor> {
   final logic = Get.find<EditorLogic>();
   final state = Get.find<EditorLogic>().state;
-  final _controller = TextEditingController();
-  NoteEditor(
-      this.article, {
+  final _titleController = TextEditingController();
+  final _containController = TextEditingController();
+  _NoteEditorState(
+      {
     Key? key
-  }): super(key: key);
-  Article article;
+  });
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _titleController.dispose();
+    _containController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    print(state.versionPointer);
+    Article article = state.versions[state.versionPointer];
+    _titleController.text = article.title;
+    _containController.text = article.contain;
     return Container(
-        child: Column(
+        child: ListView(
           children: <Widget>[
             TextFormField(
-              initialValue: article.title,
+              controller: _titleController,
               maxLength: 50,
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
               decoration: InputDecoration(
@@ -89,12 +117,16 @@ class NoteEditor extends StatelessWidget {
                 hintText: "请输入笔记的标题",
               ),
               onChanged: (v) {
+                article = article.copy();
                 article.title = v;
                 logic.modifyArticle(article);
               },
             ),
+            NoteEditorTagList(
+              article.tags,
+            ),
             TextFormField(
-              initialValue: article.contain,
+              controller: _containController,
               keyboardType: TextInputType.multiline,
               maxLines: null,
               decoration: InputDecoration(
@@ -103,6 +135,7 @@ class NoteEditor extends StatelessWidget {
                 hintText: "请输入笔记内容",
               ),
               onChanged: (v) {
+                article = article.copy();
                 article.contain = v;
                 logic.modifyArticle(article);
               },
@@ -113,98 +146,43 @@ class NoteEditor extends StatelessWidget {
   }
 }
 
-class NoteCard extends StatelessWidget {
-  const NoteCard(
-      this.title,
-      this.tags,
-      this.contain,{
-        Key? key,
-
-      }) : super(key: key);
-  final String title;
-  final List<String> tags;
-  final String contain;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.all(5),
-      padding: EdgeInsets.all(5),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(5.0), //3像素圆角
-          boxShadow: [ //阴影
-            BoxShadow(
-                color:Colors.black54,
-                offset: Offset(2.0,2.0),
-                blurRadius: 4.0
-            )
-          ]
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textScaleFactor: 1.8,
-          ),
-          NoteCardTagList(tags),
-          Text(
-            contain,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            textScaleFactor: 1.1,
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class NoteCardTagList extends StatelessWidget {
-  const NoteCardTagList(
+class NoteEditorTagList extends StatelessWidget {
+  final logic = Get.find<EditorLogic>();
+  final state = Get.find<EditorLogic>().state;
+  NoteEditorTagList(
       this.tags,{
         Key? key,
-
       }) : super(key: key);
   final List tags;
 
   @override
   Widget build(BuildContext context) {
+    Article article = state.versions[state.versionPointer];
     return Container(
         child: Row(
-          children: List.generate(tags.length, (index) {
-            return Opacity(
+          children: <Widget>[
+            Row(
+              children: List.generate(tags.length, (index) {
+                return GestureDetector(
+                  child: NoteTag(tags[index], 1.2),
+                  onTap: () {
+                    print("Tag Deleted");
+                    article = article.copy();
+                    article.tags.removeAt(index);
+                    print(article.tags.length);
+                    logic.modifyArticle(article);
+                    logic.update();
+                  },
+                );
+              }),
+            ),
+            Opacity(
               opacity: 0.75,
               child: Container(
-                margin: EdgeInsets.all(2),
-                padding: EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                    color: Colors.lightBlue,
-                    borderRadius: BorderRadius.circular(5.0), //3像素圆角
-                    boxShadow: [ //阴影
-                      BoxShadow(
-                          color:Colors.black54,
-                          offset: Offset(1.0,1.0),
-                          blurRadius: 1.0
-                      )
-                    ]
-                ),
-                child: Text(
-                  tags[index],
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textScaleFactor: 0.9,
-                ),
+
               ),
-            );
-          }),
+            ),
+          ]
         )
     );
   }

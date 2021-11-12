@@ -44,6 +44,8 @@ class MenuPage extends StatelessWidget {
         child: Icon(Icons.add),
         onPressed: () async {
           Article newArticle = await Get.to(EditorPage(), arguments: Article("",[],""));
+          print(newArticle.title);
+          print(newArticle.contain);
           if("" != newArticle.title && "" != newArticle.contain) {
             logic.insertArticle(newArticle);
           } else {
@@ -107,12 +109,11 @@ class NoteCard extends StatelessWidget {
         if("" != newArticle.title && "" != newArticle.contain) {
           logic.modifyArticle(newArticle, index);
         } else {
-          print("Edited Null Article");
+          print("Article " + index.toString() + "deleted");
+          logic.deleteArticle(index);
         }
       }
     );
-
-
   }
 }
 
@@ -129,35 +130,48 @@ class NoteCardTagList extends StatelessWidget {
     return Container(
         child: Row(
           children: List.generate(tags.length, (index) {
-            return Opacity(
-              opacity: 0.75,
-              child: Container(
-                margin: EdgeInsets.all(2),
-                padding: EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                    color: Colors.lightBlue,
-                    borderRadius: BorderRadius.circular(5.0), //3像素圆角
-                    boxShadow: [ //阴影
-                      BoxShadow(
-                          color:Colors.black54,
-                          offset: Offset(1.0,1.0),
-                          blurRadius: 1.0
-                      )
-                    ]
-                ),
-                child: Text(
-                  tags[index],
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textScaleFactor: 0.9,
-                ),
-              ),
-            );
+            return NoteTag(tags[index], 0.9);
           }),
         )
+    );
+  }
+}
+
+class NoteTag extends StatelessWidget {
+  NoteTag(
+      this.tag,
+      this.size,
+      {Key? key
+      }) : super(key: key);
+  final String tag;
+  final double size;
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: 0.75,
+      child: Container(
+        margin: EdgeInsets.all(2),
+        padding: EdgeInsets.all(2),
+        decoration: BoxDecoration(
+            color: Colors.lightBlue,
+            borderRadius: BorderRadius.circular(5.0), //3像素圆角
+            boxShadow: [ //阴影
+              BoxShadow(
+                  color:Colors.black54,
+                  offset: Offset(1.0,1.0),
+                  blurRadius: 1.0
+              )
+            ]
+        ),
+        child: Text(
+          tag,
+          style: TextStyle(
+            color: Colors.white,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textScaleFactor: size,
+        ),
+      ),
     );
   }
 }
